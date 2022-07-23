@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <script>
+    storyCharacters = {{ characters|tojson }}
+    storyName = {{ story.title|tojson }}
+    storyText = {{ story.text|tojson }}
+    otherCharacters = {{ other_characters|tojson }}
+    otherCharacterNames = {{ other_characters_names|tojson }}
+    selectedCharacters = []
+
+    function showEdit() {
+      let id = ($(this).attr("id"))
+      let formName = "#" + id + "Form"
+      let buttonName = "#" + id + "Button"
+      let text = id.replace("edit", "")
+      if ($(formName).hasClass("hidden")) {
+        $(this).addClass("edit-mode-on")
+        $(formName).removeClass("hidden")
+        $(buttonName).text("Cancel")
+      } else {
+        $(this).removeClass("edit-mode-on")
+        $(formName).addClass("hidden")
+        $(buttonName).text("Edit " + text)
+      }
+    }
+
+    function addCharacter() {
+      if ($(this).hasClass('light-pink-select')) {
+        $(this).removeClass('light-pink-select')
+        selectedCharacters = selectedCharacters.filter(char => char != $(this).text())
+      } else {
+        $(this).addClass('light-pink-select')
+        selectedCharacters.push($(this).text())
+      }
+      $("#characters").val(selectedCharacters)
+      if (selectedCharacters.length == 0) {
+        $("#add").prop('disabled', true).addClass("disabled")
+      } else {
+        $("#add").prop('disabled', false).removeClass("disabled")
+      }
+    }
+
+    $(document).ready(function() {
+      $("#edit").val(storyText)
+      $("#editTitle").click(showEdit)
+      $("#editStory").click(showEdit)
+      $(".character-name").click(addCharacter)
+      $("#add").prop('disabled', true)
+      $("#storyText").html(storyText)
+      if (storyCharacters.length == 0) {
+        $("#characterSection").addClass("hidden")
+      }
+      if (otherCharacterNames.length == 0) {
+        $("#addCharactersSection").addClass("hidden")
+      }
+      $(".remove").hover(
+      function() {
+        id = this.id.replace("-remove", "")
+        $("#" + id).removeClass("focus").addClass("fade")
+      }, function() {
+        $("#" + id).removeClass("fade").addClass("focus")
+      })
+    })
+
+  </script>
+
+  <div class="story-title">
+
+    <h1 class="pink-header">{{ story.title }}</h1>
+
+    <i id="editTitle" class="fa-solid fa-file-pen icon"></i>
+    <span id="editTitleButton" class="tooltip">Edit Title</span>
+
+  </div>
+
+    <form id="editTitleForm" class="hidden" action="" method="post" onSubmit="return confirm('Are you sure you want to rename ' + storyName + '?');" novalidate>
+
+        {{ rename_form.hidden_tag() }}
+
+            <div id="editContainter">{{ rename_form.new_name(size=32) }}</div><br>
+            {% for error in rename_form.new_name.errors %}
+            <span style="color: #f23568;">[{{ error }}]</span>
+            {% endfor %}
+
+        {{ rename_form.rename(class_="form-button") }}
+
+    </form>
+
+    <div id="storyText"></div>
+    <i id="editStory" class="fa-solid fa-file-pen icon"></i>
+    <span id="editStoryButton" class="tooltip">Edit Story</span>
+
+    <div id="editStoryForm" class="hidden">
+    <form action="" method="post" novalidate>
+
+        {{ edit_form.hidden_tag() }}
+
+        <p>
+            {{ edit_form.edit.label }}<br>
+            {{ edit_form.edit(cols="80", rows="20")}}<br>
+            {% for error in edit_form.edit.errors %}
+            <span style="color: #f23568;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>{{ edit_form.update(class_="form-button") }}</p>
+
+    </form>
+    </div>
+
+    <hr/>
+
+  <div id="characterSection">
+
+    <h2 style="margin: 0;">Starring:</h2>
+    <div class="character-menu" style="padding: 10px;">
+      {% for char in story.characters %}
+      <div style="margin-top: 75px; margin-bottom: 50px;">
+        <div id="c-{{char.id}}">
+          <a href="{{ url_for('main.character', character_id=char.id) }}">
+            {% if char.avatar is not none %}
+              <img class='thumbnail' src="{{ url_for('static', filename='uploads/'+char.avatar) }}" />
+            {% else %}
+              <img class='thumbnail' src="{{ url_for('static', filename='images/generic_avatar.png') }}" />
+            {% endif %}
+
+            <p>{{ char.name }}</p>
+          </a>
+        </div>
+        <form action="" method="post" novalidate>
+          {{ remove_form.hidden_tag() }}
+          <p class="hidden"> {{ remove_form.characterID.label }}<br/>
+            {{ remove_form.characterID(value=char.id) }}<br/>
+          </p>
+          <p id="c-{{char.id}}-remove" class="remove" style="margin: 0; padding: 0;">{{ remove_form.remove(class_="form-button") }}</p>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+
+    <hr/>
+
+  </div>
+  <div id="addCharactersSection">
+
+    <div x-data="{ open: false }">
+
+    <div @click="open = ! open"><div class="add-character-button"><h2><i class="fa-solid fa-user-plus icon"></i> Add Characters To This Story</h2></div></div>
+
+    <div x-show="open" x-transition.duration.200ms>
+
+      {% for world in other_characters %}
+        {% if world.characters|length != 0 %}
+         <h3>{{ world.name}}</h3>
+         <div class="character-reel">
+           {% for character in world.characters %}
+             <div class="character-name pink-add">{{ character.name }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+
+    <form action="" method="post" novalidate>
+
+        {{ add_character_form.hidden_tag() }}
+
+        <div class="hidden">
+          <p>
+              {{ add_character_form.characters.label }}<br/>
+              <div id="editContainter">{{ add_character_form.characters(size=12) }}</div><br/>
+              {% for error in add_character_form.characters.errors %}
+              <span style="color: #f23568;">[{{ error }}]</span>
+              {% endfor %}
+          </p>
+        </div>
+
+        <p>{{ add_character_form.add(class_="form-button disabled") }}</p>
+
+    </form>
+
+    </div>
+
+    </div>
+    <hr/>
+
+  </div>
+
+
+    <div class="options">
+      <form id="download" action="{{ url_for('main.download', story_id=story.id) }}">
+          <input type="submit" class="form-button" value="Download"/>
+        </form>
+
+      <form action="" method="post" onSubmit="return confirm('Are you sure you want to delete ' + storyName + '?');" novalidate>
+
+          {{ delete_form.hidden_tag() }}
+
+          <p>{{ delete_form.delete(class_="form-button delete") }}</p>
+
+      </form>
+
+    </div>
+
+{% endblock %}

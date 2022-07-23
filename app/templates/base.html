@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+    <head>
+    {{ JSGlue.include() }}
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      {% if title %}
+      <title>{{ title }} - Prompto!</title>
+      {% else %}
+      <title>Prompto!</title>
+      {% endif %}
+
+       <!-- Jquery -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+      <!-- FontAwesome -->
+      <script src="https://kit.fontawesome.com/adab6290a9.js" crossorigin="anonymous"></script>
+      <!-- AlpineJS -->
+      <script src="//unpkg.com/alpinejs" defer></script>
+
+      <!-- Fonts -->
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Fascinate+Inline&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+      <!-- CSS Animations -->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+      <!-- Styles-->
+      <link href="{{url_for('static', filename='css/style.css')}}" rel="stylesheet">
+
+    </head>
+    <body>
+
+      <div style="background-color: #f23568; display: flex; justify-content: center; font-size: 1.5em; font-weight: bold; padding: 5px;">Technical Demo</div>
+      <div class="header">
+
+        <div class="headline">
+          <span class="fascinate title">Prompto!</span>
+          <span class="subtitle">...for writers in a rush!</span>
+        </div>
+
+
+
+        <div class="menu">
+
+            {% if current_user.is_anonymous %}
+              <a href="{{ url_for('auth.login') }}">Login</a>
+              <a href="{{url_for('main.about')}}">About</a>
+            {% else %}
+            <a id="homeButton" class="menu-button" href="{{url_for('main.index')}}">Home</a>
+            <span class="fascinate separator">•</span>
+            <a id="aboutButton" class="menu-button" href="{{url_for('main.about')}}"> About </a>
+            <span class="fascinate separator">•</span>
+            <a id="worldsButton" class="menu-button" href="{{url_for('main.worlds')}}">Worlds</a>
+            <span class="fascinate separator">•</span>
+            <a id="storiesButton" class="menu-button" href="{{url_for('main.stories')}}">Stories</a>
+            <span class="fascinate separator">•</span>
+            <a id="populateButton" class="menu-button" href="{{url_for('main.populate')}}">Populate</a>
+            <span class="fascinate separator">•</span>
+            <a id="writeButton" class="menu-button" href="{{url_for('main.write')}}">Write</a>
+            <a id="logoutButton" class="menu-button" href="{{ url_for('auth.logout') }}">Logout</a>
+            {% endif %}
+
+        </div>
+
+      </div>
+      <div class="flash">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <p class="{{ category }}">{{ message }}</p>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
+
+
+      <main>
+        {% block content %}{% endblock %}
+      </main>
+
+    {{ ckeditor.load() }}
+    </body>
+</html>

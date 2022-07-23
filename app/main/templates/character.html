@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <script>
+    let charName = {{ character.name|tojson }}
+    let avatar = {{ character.avatar|tojson }}
+
+    function generateAvatar() {
+
+      let avatarURL = ""
+
+      if (avatar) {
+        avatarURL = "<img class='avatar' src={{ url_for('static', filename='uploads/') }}" + avatar + " />"
+      } else {
+        avatarURL = "<img class='avatar' src={{ url_for('static', filename='images/generic_avatar.png') }} />"
+      }
+
+      $("#avatar").append(avatarURL)
+    }
+
+    function toggleEdit() {
+      id = this.id
+      tooltipText = id.replace("edit", "")
+      if ($("#" + id + "Form").hasClass("hidden")) {
+        $("#" + id + "Form").removeClass("hidden")
+        $("#" + id + "Tooltip").text("Cancel")
+      } else {
+        $("#" + id + "Form").addClass("hidden")
+        $("#" + id + "Tooltip").text("Edit " + tooltipText)
+      }
+    }
+
+    $(document).ready(function() {
+      generateAvatar()
+      $(".icon").click(toggleEdit)
+    })
+
+  </script>
+
+    <div class="character-name">
+      <h1>{{ character.first_name }} {{ character.last_name }}</h1>
+      <i id="editName" class="fa-solid fa-file-pen icon"></i>
+      <span id="editNameTooltip" class="tooltip">Edit Name</span>
+    </div>
+
+    <div id="editNameForm" class="hidden edit">
+        <form action="" method="post" onSubmit="return confirm('Are you sure you want to rename ' + charName + '?');" novalidate>
+
+            {{ rename_form.hidden_tag() }}
+
+            <p>
+                {{ rename_form.new_name.label }}<br>
+                {{ rename_form.new_name(size=32, class_="form-font") }}<br>
+                {% for error in rename_form.new_name.errors %}
+                <span style="color: #f23568;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+
+            <p>{{ rename_form.rename(class_="form-button") }}</p>
+
+        </form>
+    </div>
+
+
+    <div class="avatar-section">
+      <div id="avatar"></div>
+      <div class="edit-avatar-section">
+        <i id="editAvatar" class="fa-solid fa-file-pen icon"></i>
+        <span id="editAvatarTooltip" class="tooltip">Edit Avatar</span>
+      </div>
+    </div>
+      <div id="editAvatarForm" class="hidden edit">
+        <form action="{{url_for('main.character', character_id=character.id)}}" method="post" enctype="multipart/form-data" accept="image/*" novalidate>
+
+            {{ avatar_form.hidden_tag() }}
+
+            <div id="uploadAvatar">
+                {{ avatar_form.file(class_="form-font") }}<br>
+                {% for error in avatar_form.file.errors %}
+                <span style="color: #f23568;">[{{ error }}]</span>
+                {% endfor %}
+
+            <div>{{ avatar_form.upload(class_="form-button") }}</div>
+
+          </div>
+        </form>
+      </div>
+
+
+    <div class="gender-section">
+      <p>Gender: <span style="font-weight:600">{{ character.gender }}</span></p>
+      <i id="editGender" class="fa-solid fa-file-pen icon"></i>
+      <span id="editGenderTooltip" class="tooltip">Edit Gender</span>
+    </div>
+
+    <div id="editGenderForm" class="hidden edit">
+        <form action="" method="post" novalidate>
+
+            {{ gender_form.hidden_tag() }}
+
+            <p>
+                {{ gender_form.gender.label }}<br>
+                {{ gender_form.gender(class_="form-font") }}<br>
+                {% for error in gender_form.gender.errors %}
+                <span style="color: #f23568;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+
+            <p>{{ gender_form.change(class_="form-button") }}</p>
+
+        </form>
+    </div>
+
+  <div class="description-section">
+    <p>Description: <span style="font-weight:600">{{ character.description }}</span></p>
+    <i id="editDescription" class="fa-solid fa-file-pen icon"></i>
+    <span id="editDescriptionTooltip" class="tooltip">Edit Description</span>
+  </div>
+
+  <div id="editDescriptionForm" class="hidden edit">
+      <form action="" method="post" novalidate>
+
+          {{ description_form.hidden_tag() }}
+
+          <p>
+              {{ description_form.edit.label }}<br>
+              {{ description_form.edit(cols="80", rows="5", class_="form-font") }}<br>
+              {% for error in description_form.edit.errors %}
+              <span style="color: #f23568;">[{{ error }}]</span>
+              {% endfor %}
+          </p>
+
+          <p>{{ description_form.update(class_="form-button") }}</p>
+
+      </form>
+  </div>
+
+    <h2 style="width: 95%;">Relatives</h2>
+
+    {% if relatives|length == 0 %}
+    <p>This character has no relatives.</p>
+
+    {% else %}
+
+    {% for relative in relatives %}
+      <div style="margin: 30px;"><a class="pink-link" href="{{ url_for('main.character', character_id=relative.id)}}">{{ relative.name }}</a></div> <!--NEXT: CHANGE THIS TO PINK LINK!!!-->
+    {% endfor %}
+
+    {% endif %}
+
+    <h2 style="width: 95%;">Stories</h2>
+
+      <div>
+
+        {% if character.stories|length == 0 %}
+
+        <p>This character does not feature in any stories (yet!)</p>
+
+        {% else %}
+
+          {% for story in character.stories %}
+
+          <div style="margin: 30px;">
+            <a class="pink-link" href="{{ url_for('main.story', story_id=story.id) }}">{{ story.title }}</a>
+          </div>
+          {% endfor %}
+
+        {% endif %}
+      </div>
+
+    <hr/>
+
+    <form action="" method="post" onSubmit="return confirm('Are you sure you want to delete ' + charName + '?');" novalidate>
+
+        {{ delete_form.hidden_tag() }}
+
+        <p>{{ delete_form.delete(class_="delete") }}</p>
+
+    </form>
+
+{% endblock %}

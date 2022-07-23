@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<script>
+
+(function () {
+      $("#writeButton").css("background-color", "#832baf")
+  })()
+
+let availableCharacters = []
+let allWorlds = true
+let promptCharacters = []
+
+function populateCharacterList() { // TODO: Does this need to be a function?
+  let characterList = {{ characters|tojson }};
+  return characterList
+}
+
+function populatePromptList() {
+  let masterPromptList = {{ prompts|tojson }};
+  let promptList = []
+  for (let prompt of masterPromptList) {
+    if (prompt.participants <= availableCharacters.length) {
+      promptList.push(prompt)
+    }
+  }
+  return promptList;
+}
+
+
+function getPrompt() {
+  promptList = populatePromptList()
+  let x = Math.floor((Math.random() * promptList.length)); // random integer within length of prompt list
+  let prompt = promptList[x];
+  return prompt;
+}
+
+function getCharacters(participants, category, text) {
+  promptCharacters = []
+  $(".character-name").removeClass("light-pink-select")
+  let allowRomance = $("#romance_override").is(":checked")
+
+  if (category == "romantic" && allowRomance == false) {
+    availableCharacters = removeRelatives(availableCharacters);
+  } else {
+    populateCharacters()
+  }
+
+  if (availableCharacters.length < participants) {
+    populateCharacters();
+    generatePrompt();
+  } else {
+    let selectedCharacters = []
+    for (let i = 0; i < participants; i++) {
+      let x = Math.floor((Math.random() * availableCharacters.length));
+      let character = availableCharacters[x];
+      if (selectedCharacters.includes(character)) {
+        i -= 1;
+        continue; // starts the loop again
+      } else {
+        selectedCharacters.push(character)
+      }
+    }
+    return selectedCharacters;
+  }
+}
+
+function removeRelatives(allCharacters) { // removes relatives from pool of characters available for romantic plots
+  filteredCharacters = []
+  for (let character of allCharacters) {
+    if (character.relatives.length == 0) {
+      filteredCharacters.push(character)
+    }
+  }
+  return filteredCharacters;
+}
+
+function generatePrompt() {
+  $(".error").empty()
+  if (availableCharacters.length == 0) {
+    $("#needPrompt").addClass("disabled")
+    return;
+  }
+
+  clearPrompt()
+
+  let prompt = getPrompt() // get prompt
+  let characters = getCharacters(prompt.participants, prompt.category, prompt.text) // get # of characters based on prompt
+
+  if (characters == null) {
+    return;
+  }
+
+
+  /* Select Characters in 'Featured Characters' list */
+
+  let character_names = []
+
+  for (let char of characters) {
+    promptCharacters.push(char.name)
+    character_names.push(char.name)
+    $("#c-" + char.id ).addClass("light-pink-select")
+  }
+
+
+
+  $("#select_characters").val(character_names)
+
+  /* Insert Characters into Prompt */
+
+  let splitPrompt = prompt.text.split("|"); // split prompt by special characters (that precede and suceed number placeholders)
+
+  let amendedPrompt = splitPrompt.map(function(element) { // map function: if (index + 1) of the character matches the number placeholder in this portion of the prompt, replace number with the character name
+    let amended = element
+    for (let char of characters) {
+      let y = characters.indexOf(char) + 1
+      if (element.includes(y)) {
+        amended = element.replace(y, char.first_name)
+      }
+    }
+    return amended
+  });
+
+  let finalPrompt = amendedPrompt.join('') // amendedPrompt is an array of prompt fragments; finalPrompt joins them all together
+
+  $("#prompt").text(finalPrompt)
+  $("#hints").text(prompt.hints)
+  $("#story_title").val(finalPrompt) // Autofills title in case user can't be bothered to
+  $("#prompt_id").val(prompt.id)
+  $("#promptDisplay").removeClass("hidden")
+
+}
+
+function clearPrompt() {
+  $("#prompt_id").val(0);
+  $(".light-pink-select").removeClass("light-pink-select")
+  $("#select_characters").val([]); // clear selected characters in select_characters form element
+  $("#prompt").text("Writing freeform! This story will not be saved to any prompt.")
+  $("#story_title").val([])
+  $("#promptDisplay").addClass("hidden")
+}
+
+let worldList = {{ worlds|tojson }}
+let selectedWorlds = []
+
+function populateWorldSelect() {
+  for (let world of worldList) {
+    selectedWorlds.push(world)
+    worldHTML = `<div id="w-${world.id}" class="purple-filter world-selector">${world.name}</div>`
+    $("#worldSelect").append(worldHTML)
+  }
+}
+
+function selectWorlds() {
+
+  if (allWorlds == true) {
+    selectedWorlds = []
+  }
+
+  allWorlds = false
+  selected = $(this).text()
+
+  for (world of worldList) {
+    if (world.name == selected) {
+      if (selectedWorlds.includes(world)) {
+        $(this).removeClass("purple-select")
+        selectedWorlds = selectedWorlds.filter(w => w != world)
+        if (selectedWorlds.length == 0) {
+          $("#worldSelect").empty()
+          $("#clearFilters").addClass("disabled")
+          allWorlds = true
+          populateWorldSelect()
+          $(".world-selector").click(selectWorlds)
+        }
+      } else {
+        $(this).addClass("purple-select")
+        $("#clearFilters").removeClass("disabled")
+        selectedWorlds.push(world)
+      }
+    }
+  }
+  populateCharacters()
+}
+
+
+function populateCharacters() {
+  $("#select_characters").empty()
+  availableCharacters = []
+  for (let world of selectedWorlds) {
+    for (character of world.characters) {
+      let optionHTML = `<option value="${character.name}">${character.name}</option>`
+      $("#select_characters").append(optionHTML)
+      availableCharacters.push(character)
+    }
+  }
+}
+
+function clearFilters() {
+  $(".purple-select").removeClass("purple-select")
+  $("#clearFilters").addClass("disabled")
+  $("#worldSelect").empty()
+  selectedWorlds = []
+  allWorlds = true
+  populateWorldSelect()
+  $(".world-selector").click(selectWorlds)
+  populateCharacters()
+}
+
+function addCharacter() {
+  if ($(this).hasClass("light-pink-select")) {
+    $(this).removeClass("light-pink-select")
+    promptCharacters = promptCharacters.filter(char => char != $(this).text())
+  } else {
+    $(this).addClass("light-pink-select")
+    promptCharacters.push($(this).text())
+  }
+  $("#select_characters").val(promptCharacters)
+}
+
+
+$(document).ready(function() {
+  characterList = populateCharacterList()
+  clearPrompt()
+  populateWorldSelect()
+  populateCharacters()
+  $("#story_text").empty()
+  $("#promptButton").click(generatePrompt)
+  $("#clear_prompt").click(clearPrompt)
+  $(".world-selector").click(selectWorlds)
+  $("#clearFilters").click(clearFilters)
+  $(".character-name").click(addCharacter)
+  if (availableCharacters.length == 0) {
+    $("#disabledPromptSection").removeClass("hidden")
+    $("#promptSection").addClass("hidden")
+    $("#featuredCharacters").addClass("hidden")
+  }
+  allWorlds = true;
+
+
+});
+
+</script>
+
+<div id="disabledPromptSection" class="hidden">
+  <div id="disabledPrompt" class="purple-button larger disabled">Need a prompt?</div>
+  <p>The prompt generator will be available once you have <a class="pink-link" href="{{url_for('main.populate')}}">populated</a> your worlds.</p>
+</div>
+
+<div id="promptSection" x-data="{ open: false }">
+    <div style="display: flex;" @click="open = ! open"><div class="purple-button larger">Need a prompt?</div></div>
+
+    <div class="prompt-section" x-show="open" x-transition.duration.200ms>
+
+      <h3>Filter available characters by world</h3>
+      <p>(All characters available if no filter is selected)</p>
+      <div id="worldSelect"></div>
+      <div id="clearFilters" class="purple-filter filter-button disabled">Clear Filters</div>
+
+
+      <div id="promptButton" class="purple-button larger" style="margin-top: 30px;">Generate Prompt</div>
+
+
+    </div>
+</div>
+
+<hr/>
+
+<div id="promptDisplay" class="hidden">
+  <p id="prompt" class="larger"></p>
+  <p id="hints"></p>
+
+  <button id="clear_prompt" class="form-button">Clear prompt</button>
+  <hr/>
+</div>
+
+
+<form action="" method="post" novalidate>
+
+    {{ story_form.hidden_tag() }}
+
+    <p>
+        {{ story_form.story_title.label }}<br>
+        {{ story_form.story_title(size=70, class_="form-font") }}<br>
+        {% for error in story_form.story_title.errors %}
+        <span class="error" style="color: #f23568;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+
+    <p>
+        {{ story_form.story_text.label }}<br>
+        {{ story_form.story_text(cols="80", rows="10")}}<br>
+        {% for error in story_form.story_text.errors %}
+        <span class="error" style="color: #f23568;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+
+
+    <h2 id="featuredCharacters" class="pink-header">Featured Characters</h2>
+    {% for world in worlds %}
+     <h3>{{ world.name}}</h3>
+     <div class="character-reel">
+       {% for character in world.characters %}
+         <div id="c-{{character.id}}" class="character-name pink-add">{{ character.name }}</div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+    <p id="selectCharactersSection" class="hidden">
+        {{ story_form.select_characters.label }}<br>
+        {{ story_form.select_characters(size=10) }}<br>
+        {% for error in story_form.select_characters.errors %}
+        <span class="error" style="color: #f23568;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+
+    <p class="hidden">
+        {{ story_form.prompt_id.label }}<br>
+        {{ story_form.prompt_id(size=10) }}<br>
+        {% for error in story_form.prompt_id.errors %}
+        <span class="error" style="color: #f23568;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+
+    <hr/>
+
+    <p>{{ story_form.submit(class_="submit-button", style="margin: 0 auto;
+      display: block;") }}</p>
+
+</form>
+
+{% endblock %}

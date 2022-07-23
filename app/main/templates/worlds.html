@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<script>
+
+  (function () {
+      $("#worldsButton").css("background-color", "#832baf")
+  })()
+
+  function toggleEditName() {
+    id = this.id.replace("editName-", "")
+    if ($("#renameWorld-" + id).hasClass("hidden")) {
+      $("#renameWorld-" + id).removeClass("hidden")
+      $("#deleteWorld-" + id).removeClass("hidden")
+      $("#tooltip-" + id).text("Cancel")
+    } else {
+      $("#renameWorld-" + id).addClass("hidden")
+      $("#deleteWorld-" + id).addClass("hidden")
+      $("#tooltip-" + id).text("Edit Name")
+    }
+  }
+
+  $(document).ready(function() {
+    $(".edit-name").click(toggleEditName)
+  })
+
+</script>
+
+  {% if worlds|length == 0 %}
+
+  <h3>You haven't created any worlds yet. Start <a class="pink-link" href="{{url_for('main.populate')}}">populating</a>?</h3>
+
+  {% else %}
+
+    {% for world in worlds %}
+    <div x-data="{ open: false }">
+      <div class="world-entry">
+        <div class="world-name pink-header purple-hover" :class="open ? 'purple-select pink-hover' : ' '" @click="open = ! open"><a>{{ world.name }}</a></div>
+        <i id="editName-{{world.id}}" class="fa-solid fa-file-pen icon edit-name"></i>
+        <span id="tooltip-{{world.id}}" class="tooltip">Edit Name</span>
+      </div>
+      <div style="margin-left: 20px;">
+      <form action="" method="post" onSubmit="return confirm('Are you sure you want to rename ' + worldName + '?');" novalidate>
+
+          {{ rename_form.hidden_tag() }}
+
+          <div class="hidden">
+            <p>
+                {{ rename_form.id.label }}<br>
+                {{ rename_form.id(size=32, value=world.id) }}<br>
+                {% for error in rename_form.id.errors %}
+                <span style="color: #f23568;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+          </div>
+
+          <div id="renameWorld-{{world.id}}" class="hidden">
+          <p>
+              {{ rename_form.new_name.label }}<br>
+              {{ rename_form.new_name(size=32) }}<br>
+              {% for error in rename_form.new_name.errors %}
+              <span style="color: #f23568;">[{{ error }}]</span>
+              {% endfor %}
+          </p>
+
+          <p>{{ rename_form.rename(class_="form-button") }}</p>
+          </div>
+      </form>
+      <form action="" method="post" onSubmit="return confirm('Are you sure you want to delete the world of ' + worldName + '? PLEASE NOTE: This will delete all characters within the world too!');" novalidate>
+
+          {{ delete_form.hidden_tag() }}
+
+          <div class="hidden">
+            <p>
+                {{ delete_form.id.label }}<br>
+                {{ delete_form.id(size=32, value=world.id) }}<br>
+                {% for error in delete_form.id.errors %}
+                <span style="color: #f23568;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+          </div>
+
+          <div id="deleteWorld-{{world.id}}" class="hidden">
+            <hr/>
+            <p>{{ delete_form.delete(class_="delete") }}</p>
+          </div>
+
+      </form>
+      </div>
+
+        <div x-show="open" x-transition.duration.200ms>
+
+          {% if world.characters|length == 0 %}
+          <div style="margin: 20px;">No characters in this world yet! Start <a class="pink-link" href="{{url_for('main.populate')}}">populating</a>?</div>
+          {% else %}
+          <div class="character-menu">
+            {% for character in world.characters %}
+              <div>
+                <a href="{{ url_for('main.character', character_id=character.id) }}">
+                {% if character.avatar is not none %}
+                  <img class='thumbnail' src="{{ url_for('static', filename='uploads/'+character.avatar) }}" />
+                {% else %}
+                  <img class='thumbnail' src="{{ url_for('static', filename='images/generic_avatar.png') }}" />
+                {% endif %}
+                <p>{{ character.name }}</p>
+              </a>
+              </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+        </div>
+    </div>
+
+    {% endfor %}
+
+  {% endif %}
+
+{% endblock %}

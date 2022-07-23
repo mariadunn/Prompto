@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<script>
+
+(function () {
+    $("#homeButton").css("background-color", "#832baf")
+})()
+
+
+</script>
+
+<div class="centered">
+
+    <h1>Hello, {{ current_user.username }}!</h1>
+
+    <div id="facts">
+      <div>You have written <span style="font-weight:600;">{{ number_of_stories }}</span> {% if number_of_stories == 1 %} story{% else %} stories{% endif %}.</div>
+      <div>You have created <span style="font-weight:600;">{{ number_of_worlds }}</span> {% if number_of_worlds == 1 %} world{% else %} worlds{% endif %}.</div>
+      <div>You have created <span style="font-weight:600;">{{ number_of_characters }}</span> {% if number_of_characters == 1 %} character{% else %} characters{% endif %}.</div>
+      {% if popular_length != 0 %}<div><span style="font-weight:600;">{{ popular_characters }}</span> {% if popular_length == 1 %}features {% else %}feature {% endif %}in the most stories.</div>{% endif %}
+    </div>
+
+  </div>
+
+{% endblock %}

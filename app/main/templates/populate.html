@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <script>
+
+      (function () {
+          $("#populateButton").css("background-color", "#832baf")
+      })()
+
+      let worldList = {{ worlds|tojson }}
+      let selectedRelatives = []
+      let selectedWorld = ""
+
+      function selectWorld() {
+        if ($(this).hasClass('purple-select')) {
+          $(this).removeClass('purple-select')
+          selectedWorld = ""
+        } else {
+          $(".purple-select").removeClass("purple-select")
+          $(this).addClass('purple-select')
+          selectedWorld = $(this).text()
+        }
+        $("#select_world").val(selectedWorld)
+        fillRelatives()
+      }
+
+      function fillRelatives(){
+        $("#relatives").empty()
+        $("#relative-reel").empty()
+        let selectedWorld = $("#select_world").val()
+        for (let world of worldList) {
+          if (world.name == selectedWorld) {
+            for (let character of world.characters) {
+              let optionHTML = `<option value="${character.name}">${character.name}</option>`
+              $("#relatives").append(optionHTML)
+              let relativeHTML = `<div class="relative-name pink-add">${character.name}</div>`
+              $("#relative-reel").append(relativeHTML)
+            }
+          }
+        }
+        if ($("#relatives").children().length == 0) {
+
+          $("#blood-relatives").addClass("hidden")
+        } else {
+          $("#blood-relatives").removeClass("hidden")
+        }
+        $(".relative-name").click(selectRelative)
+      }
+
+      function selectRelative() {
+        if ($(this).hasClass('light-pink-select')) {
+          $(this).removeClass('light-pink-select')
+          selectedRelatives = selectedRelatives.filter(char => char != $(this).text())
+        } else {
+          $(this).addClass('light-pink-select')
+          selectedRelatives.push($(this).text())
+        }
+        $("#relatives").val(selectedRelatives)
+      }
+
+      $(document).ready(function() {
+        fillRelatives()
+        $("#select_world").change(fillRelatives)
+        $(".world-reel-name").click(selectWorld)
+      })
+
+    </script>
+
+    <div>
+
+      <h2 class="pink-header">Add World</h2>
+
+          <form action="" method="post" novalidate>
+
+            {{ world_form.hidden_tag() }}
+
+            <h3>
+                {{ world_form.world_name.label }}<br>
+                {{ world_form.world_name(size=32, class_="form-font") }}<br>
+                {% for error in world_form.world_name.errors %}
+                <span style="color: #f23568;">[{{ error }}]</span>
+                {% endfor %}
+            </h3>
+
+            <p>{{ world_form.create_world(class_="submit-button") }}</p>
+
+          </form>
+
+        </div>
+
+        <div style="margin-top: 75px;">
+
+          <h2 class="pink-header">Add Character</h2>
+
+              <form action="" method="post" enctype="multipart/form-data" accept="image/*" novalidate>
+
+                  {{ character_form.hidden_tag() }}
+
+                  <h3>World</h3>
+                  <div id="world-reel">
+                    {% for world in worlds %}
+                      <div class="world-reel-name purple-filter">{{world.name}}</div>
+                    {% endfor %}
+                  </div>
+
+                  <div class="hidden">
+                  <h3>
+                      {{ character_form.select_world.label }}<br>
+                      {{ character_form.select_world(class_="form-font") }}<br>
+                      {% for error in character_form.select_world.errors %}
+                      <span style="color: #f23568;">[{{ error }}]</span>
+                      {% endfor %}
+                  </h3>
+                  </div>
+
+                  <div style="margin-bottom: 50px;">
+                  <h3>
+                      <div>{{ character_form.avatar.label }}</div><br>
+                      {{ character_form.avatar(size=32, class_="form-font") }}<br>
+                      {% for error in character_form.avatar.errors %}
+                      <span style="color: #f23568;">[{{ error }}]</span>
+                      {% endfor %}
+                  </h3>
+                  </div>
+
+                  <h3>
+                      {{ character_form.first_name.label }}<br>
+                      {{ character_form.first_name(size=32, class_="form-font") }}<br>
+                      {% for error in character_form.first_name.errors %}
+                      <span style="color: #f23568;">[{{ error }}]</span>
+                      {% endfor %}
+                  </h3>
+
+                  <h3>
+                      {{ character_form.last_name.label }}<br>
+                      {{ character_form.last_name(size=32, class_="form-font") }}<br>
+                      {% for error in character_form.last_name.errors %}
+                      <span style="color: #f23568;">[{{ error }}]</span>
+                      {% endfor %}
+                  </h3>
+
+                  <h3>
+                      {{ character_form.gender.label }}<br>
+                      {{ character_form.gender(class_="form-font") }}<br>
+                      {% for error in character_form.gender.errors %}
+                      <span style="color: #f23568;">[{{ error }}]</span>
+                      {% endfor %}
+                  </h3>
+
+                  <h3>
+                      {{ character_form.description.label }}<br>
+                      {{ character_form.description(cols="80", rows="5", class_="form-font") }}<br>
+                      {% for error in character_form.description.errors %}
+                      <span style="color: #f23568;">[{{ error }}]</span>
+                      {% endfor %}
+                  </h3>
+
+                  <div id="blood-relatives"</div>
+                    <h3>Blood Relatives (click to select)</h3>
+                    <div id="relative-reel">
+                    </div>
+                  </div>
+
+                  <div class="hidden">
+                    <h3 id="relative_section">
+                        {{ character_form.relatives.label }}<br>
+                        {{ character_form.relatives(size=15, class_="form-font") }}<br>
+                        {% for error in character_form.relatives.errors %}
+                        <span style="color: #f23568;">[{{ error }}]</span>
+                        {% endfor %}
+                    </h3>
+                  </div>
+
+                  <p>{{ character_form.add_character(class_="submit-button") }}</p>
+
+              </form>
+
+            </div>
+
+
+
+{% endblock %}

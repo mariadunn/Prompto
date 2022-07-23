@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <script>
+
+      (function () {
+          $("#storiesButton").css("background-color", "#832baf")
+      })()
+
+      let worldList = {{ worlds|tojson }}
+      let storyList = {{ stories|tojson }}
+      let promptList = {{ prompts|tojson }}
+      let selectedCharacters = []
+      let filteredStories = []
+
+      function loadCharacters() {
+        for (let world of worldList) {
+          let worldName = `<div>
+                            <h3 id="w-${world.id}">${world.name}</h3>
+                            </div>`
+          let worldChars = `<div id="w-${world.id}-chars" class="character-reel"></div>`
+          let selectButtons = `<div id="select-buttons"><button id="w-${world.id}Select" class="select button">Select All</button><button id="w-${world.id}Deselect" class="deselect button">Deselect All</button></div>`
+          $("#characters").append(worldName, worldChars, selectButtons)
+          for (let character of world.characters) {
+            let charEntry = `<div id="c-${character.id}" class="filter-character-name purple-filter">${character.name}</div>`
+            $(`#w-${world.id}-chars`).append(charEntry)
+          }
+        }
+      }
+
+      function loadStories() {
+
+        $("#stories").empty()
+        $("#storiesFeaturing").removeClass("hidden")
+
+        if (selectedCharacters.length == 0) {
+          filteredStories = []
+        }
+
+        let selectedStories = []
+        let allStories = true
+
+        if (filteredStories.length == 0) {
+          if (selectedCharacters.length == 0) {
+            $("#allStoriesDiv").addClass("hidden")
+            allStories = true
+            selectedStories = storyList
+            $("#storiesFeaturing").addClass("hidden")
+          } else {
+            allStories = false
+            $("#allStoriesDiv").removeClass("hidden")
+          }
+        } else {
+          allStories = false
+          $("#allStoriesDiv").removeClass("hidden")
+          selectedStories = filteredStories
+        }
+
+        for (let story of selectedStories) {
+
+          /* Generate story HTML*/
+
+          let storyURL = Flask.url_for('main.story', {"story_id": story.id})
+          let storyEntry = `<div id="s-${story.id}" class="story"><div class="story-title"><a href=${storyURL}>${story.title}</a></div><div class="snippet">${story.snippet}...</div><div><h3>Featuring:</h3></div><div id="s-${story.id}-chars" class="featured-characters"></div></div>`
+
+          /* Generate featured characters HTML */
+
+          let featuredCharacters = []
+
+          for (let character of story.characters) {
+            for (let world of worldList) {
+              for (let char of world.characters) {
+                if (char.name == character.name) {
+                  featuredCharacters.push(character)
+                }
+              }
+            }
+          }
+
+          let featuredCharactersHTML = ""
+
+          for (let character of featuredCharacters) {
+            // let characterURL = Flask.url_for('main.character', {"character_id": character.id, "character_name": character.name.replace(' ', '_')})
+            featuredCharactersHTML += `<div class="f-${character.id} featuring-name">${character.name}</div>`
+          }
+
+          $("#stories").append(storyEntry)
+          $(`#s-${story.id}-chars`).append(featuredCharactersHTML)
+
+        }
+
+        /* Generates text in summary list at top of Stories div */
+
+        if (allStories == false) {
+          $("#featuringCount").text(filteredStories.length)
+        } else {
+          $("#featuringCount").empty()
+        }
+
+        if (filteredStories.length == 1) {
+          $("#featuringPlural").text("story")
+        } else {
+          $("#featuringPlural").text("stories")
+        }
+
+        if (selectedCharacters.length == 1) {
+          $("#featuringText").text("featuring:")
+        }
+
+        $("#featured-reel").empty()
+        let featuredReelHTML = ""
+
+        for (let character of selectedCharacters) {
+          if (allStories == false) {
+            $(".f-" + character.id).addClass("light-pink-select")
+            featuredReelHTML += `<div id="c-${character.id}-featured" class="featured-character-name pink-link"><div>${character.name}</div></div>`
+          }
+        }
+
+        featuredReelHTML += "<div class='featured-character-clear'><span>Clear All</span></div>"
+        $("#featured-reel").append(featuredReelHTML)
+        $(".featured-character-name").click(function() {
+          target = $(this)
+          removeSelectedCharacters(target)
+        })
+        $(".featured-character-clear").click(showAllStories)
+      }
+
+      function select(e) {
+        target = $(this)
+        if (target.hasClass("purple-select")) {
+          removeSelectedCharacters(target)
+        } else {
+          addSelectedCharacters(target, selectedCharacters)
+        }
+        filterStories()
+      }
+
+      function addSelectedCharacters(element, chars) {
+        element.addClass("purple-select")
+        selectedCharacters = chars
+        for (let world of worldList) {
+          for (let character of world.characters) {
+            if ("c-" + character.id == element.attr("id")) {
+              selectedCharacters.push(character)
+            }
+          }
+        }
+      }
+
+      function removeSelectedCharacters(element) {
+        $(element).removeClass("purple-select")
+        if (element.hasClass("featured-character-name")) {
+          selectedCharacters = selectedCharacters.filter(char => "c-" + char.id + "-featured" != element.attr("id"))
+          stripID = element.attr("id").replace('-featured', '')
+          $("#" + stripID).removeClass("purple-select")
+        } else {
+          selectedCharacters = selectedCharacters.filter(char => "c-" + char.id != element.attr("id"))
+          $("#" + element.attr("id") + "-featured").remove()
+        }
+        filterStories()
+      }
+
+      function filterStories() {
+        filteredStories = []
+        for (let story of storyList) {
+          for (let character of story.characters) {
+            for (let char of selectedCharacters) {
+              if (character.id == char.id) {
+                if (!filteredStories.includes(story)) {
+                  filteredStories.push(story)
+                }
+              }
+            }
+          }
+        }
+        $("#featuringText").text("featuring either:")
+        loadStories()
+      }
+
+      function selectAll() {
+          for (let world of worldList) {
+            if ("w-" + world.id + "Select" == $(this).attr("id")) {
+              for (let character of world.characters) {
+                if (!selectedCharacters.includes(character)) {
+                  selectedCharacters.push(character)
+                  $(`#c-${character.id}`).addClass("purple-select")
+                }
+              }
+            }
+          }
+        filterStories()
+      }
+
+      function deselectAll() {
+        for (let world of worldList) {
+          if ("w-" + world.id + "Deselect" == $(this).attr("id")) {
+            for (let character of world.characters) {
+              $(`#c-${character.id}`).removeClass("purple-select")
+              selectedCharacters = selectedCharacters.filter(char => char.id != character.id)
+            }
+          }
+        }
+        filterStories()
+      }
+
+      function showAllStories() {
+        selectedCharacters = []
+        $(".purple-select").removeClass("purple-select")
+        loadStories()
+      }
+
+
+      $(document).ready(function() {
+        loadCharacters()
+        loadStories()
+        $(".select").click(selectAll)
+        $(".deselect").click(deselectAll)
+        $(".filter-character-name").click(select)
+        $("#allStoriesButton").click(showAllStories)
+        if (worldList.length == 0 ) {
+          $("#filterByCharacter").addClass("hidden")
+        }
+
+      })
+
+    </script>
+
+<!--  HTML -->
+
+{% if stories|length == 0 %}
+
+<h3>You haven't written any stories yet. Start <a class="pink-link" href="{{url_for('main.write')}}">writing</a>?</h3>
+
+{% else %}
+
+<div id="filterByCharacter">
+    <div x-data="{ open: false }">
+        <div class="purple-button larger" @click="open = ! open">Filter By Character</div>
+
+        <div x-show="open" x-transition.duration.200ms>
+
+          <div id="characters" style="margin-left: 50px;">
+          </div>
+
+        </div>
+    </div>
+    <hr/>
+</div>
+
+
+
+    <div id="storySection">
+
+      <div id="storiesFeaturing">
+        <p><span id="featuringCount"></span> <span id="featuringPlural"></span> <span id="featuringText"></span></p>
+        <ul id="featured-reel">
+        </ul>
+      </div>
+
+      <div id="stories">
+      </div>
+
+      <div id="allStoriesDiv">
+        <button id='allStoriesButton' class='button'>Show All Stories</button>
+      </div>
+
+    </div>
+
+{% endif %}
+
+{% endblock %}
