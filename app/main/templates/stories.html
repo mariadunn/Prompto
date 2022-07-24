@@ -61,8 +61,8 @@
 
           /* Generate story HTML*/
 
-          let storyURL = Flask.url_for('main.story', {"story_id": story.id})
-          let storyEntry = `<div id="s-${story.id}" class="story"><div class="story-title"><a href=${storyURL}>${story.title}</a></div><div class="snippet">${story.snippet}...</div><div><h3>Featuring:</h3></div><div id="s-${story.id}-chars" class="featured-characters"></div></div>`
+
+          let storyEntry = `<div id="s-${story.id}" class="story"><div class="story-title"><a href="/stories/${story.id}">${story.title}</a></div><div class="snippet">${story.snippet}...</div><div><h3>Featuring:</h3></div><div id="s-${story.id}-chars" class="featured-characters"></div></div>`
 
           /* Generate featured characters HTML */
 

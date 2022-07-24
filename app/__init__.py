@@ -4,7 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from flask_migrate import Migrate
 from flask_login import LoginManager
-from flask_jsglue import JSGlue
 from flask_ckeditor import CKEditor
 
 convention = { # this is something to do with SQLAlchemy
@@ -20,7 +19,6 @@ db = SQLAlchemy(metadata=metadata) # ^
 migrate = Migrate()
 login = LoginManager()
 login.login_view = 'auth.login'
-jsglue = JSGlue()
 ckeditor = CKEditor()
 
 def create_app(config_class=Config):
@@ -31,7 +29,6 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db, render_as_batch=True) # last bit not in tutorial
     login.init_app(app)
-    jsglue.init_app(app)
     ckeditor.init_app(app)
 
     from app.main import bp as main_bp
