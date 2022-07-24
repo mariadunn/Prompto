@@ -9,9 +9,9 @@ class Config(object):
     _project_root = Path(__file__).resolve().parent.parent
     _default_sqlite_db = _project_root / "database.db"
 
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL", f"sqlite:///{_default_sqlite_db}"
-    )
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', '').replace(
+    'postgres://', 'postgresql://') or \
+    'sqlite:///' + os.path.join(basedir, 'app.db')
 
 
     # Image Upload config
