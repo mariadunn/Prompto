@@ -133,7 +133,7 @@ def character(character_id):
                         file_ext != validate_image(uploaded_file.stream):
                     abort(400)
 
-                new_name = character_id + "-" + character_entry.name + file_ext
+                new_name = character_id + "-" + character_entry.first_name + file_ext
                 uploaded_file.save(os.path.join(current_app.config['UPLOAD_PATH'], new_name))
 
                 character_entry.avatar = new_name
@@ -410,8 +410,7 @@ def populate():
                         file_ext != validate_image(uploaded_file.stream):
                     abort(400)
 
-                character_name = full_name.replace(" ", "_")
-                new_name = str(character_entry.id) + "-" + character_name + file_ext
+                new_name = str(character_entry.id) + "-" + character_entry.first_name + file_ext
                 uploaded_file.save(os.path.join(current_app.config['UPLOAD_PATH'], new_name))
 
                 character_entry.avatar = new_name
