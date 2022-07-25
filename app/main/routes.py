@@ -502,7 +502,6 @@ def write():
             user_id = current_user.id,
             title = story_title,
             text = story_text,
-            prompt_id = story_form.prompt_id.data
         )
         db.session.add(story_entry)
         db.session.flush() # "flush" seems to mean "commit, but keep database open for more changes"
