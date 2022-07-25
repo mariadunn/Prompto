@@ -39,49 +39,12 @@ def index():
     character_list = character_dict()
     number_of_characters = len(character_list)
 
-    def most_popular_character():
-        story_count = 0
-        most_popular = []
-
-        char_query = Character.query.join(story_character, (story_character.c.character_id == Character.id)).with_entities(Character.name, func.count(story_character.c.character_id)).group_by(story_character.c.character_id).filter(Character.user_id == current_user.id).all()
-
-        for character in char_query:
-            if character[1] > story_count:
-                story_count = character[1]
-
-        for character in char_query:
-            if character[1] == story_count:
-                most_popular.append(character[0])
-
-        stringed_list = string_list(most_popular)
-        return stringed_list
-
-    def string_list(list):
-        string = ""
-        last_index = len(list) - 1
-        for name in list:
-            if name == list[last_index]:
-                if len(list) == 1:
-                    string = name
-                    return string, len(list)
-                else:
-                    string += "and " + name
-            elif name == list[last_index - 1]:
-                string += name + " "
-            else:
-                string += name + ", "
-        return string, len(list)
-
-    popular_characters = most_popular_character()
-
     return render_template(
         'index.html',
         title = 'Home',
         number_of_stories = number_of_stories,
         number_of_worlds = number_of_worlds,
-        number_of_characters = number_of_characters,
-        popular_characters = popular_characters[0],
-        popular_length = popular_characters[1]
+        number_of_characters = number_of_characters
         )
 
 @bp.route('/about', methods=['GET', 'POST'])
