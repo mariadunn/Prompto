@@ -77,13 +77,13 @@ def prompt_dict():
         p_dict["category"] = p.category
         p_dict["participants"] = p.participants
         p_dict["inspired_stories"] = []
-        story_query = Story.query.filter(Story.user_id == current_user.id, Story.prompt_id == p.id).all()
-        for s in story_query:
-            s_dict = {}
-            s_dict["id"] = s.id
-            s_dict["title"] = s.title
-            s_dict["text"] = s.text
-            p_dict["inspired_stories"].append(s_dict)
+        # story_query = Story.query.filter(Story.user_id == current_user.id, Story.prompt_id == p.id).all()
+        # for s in story_query:
+        #     s_dict = {}
+        #     s_dict["id"] = s.id
+        #     s_dict["title"] = s.title
+        #     s_dict["text"] = s.text
+        #     p_dict["inspired_stories"].append(s_dict)
         prompts_list.append(p_dict)
     return prompts_list
 
