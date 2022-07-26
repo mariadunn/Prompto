@@ -41,8 +41,8 @@
         <div class="menu">
 
             {% if current_user.is_anonymous %}
-              <a class="menu-button" href="{{ url_for('auth.login') }}">Login</a>
-              <a class="menu-button" href="{{url_for('main.about')}}">About</a>
+              <a class="anon-button" href="{{ url_for('auth.login') }}">Login</a>
+              <a class="anon-button" href="{{url_for('main.about')}}">About</a>
             {% else %}
             <a id="homeButton" class="menu-button" href="{{url_for('main.index')}}">Home</a>
             <span class="fascinate separator">•</span>

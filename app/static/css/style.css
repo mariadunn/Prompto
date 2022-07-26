@@ -276,7 +276,8 @@ hr {
   justify-content: flex-start;
 }
 
-.menu-button {
+.menu-button,
+.anon-button {
   background-color: #ff009b;
   color: white;
   border-radius: 10px;
