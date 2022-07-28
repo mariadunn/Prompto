@@ -7,6 +7,9 @@ from app.errors import bp
 def not_found_error(error):
     return render_template('404.html'), 404
 
+@bp.app_errorhandler(413)
+def request_entity_too_large(error):
+    return render_template('413.html'), 413
 
 @bp.app_errorhandler(500)
 def internal_error(error):

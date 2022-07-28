@@ -51,6 +51,9 @@ class Delete(FlaskForm):
     id = IntegerField('ID')
     delete = SubmitField('Delete') # this should be changed to 'Delete [story/character/world/whatever]' depending on where it is
 
+class Clear(FlaskForm):
+    clear = SubmitField('Clear')
+
 class Rename(FlaskForm):
     id = IntegerField('ID')
     new_name = StringField('New Name')

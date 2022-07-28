@@ -84,7 +84,14 @@
             <div>{{ avatar_form.upload(class_="form-button") }}</div>
 
           </div>
+          <div>(files can be no larger than 1MB)</div>
         </form>
+
+        <form action="" method="post" novalidate>
+          {{ clear_form.hidden_tag() }}
+
+          <p>{{ clear_form.clear(class_="form-button") }}</p>
+
       </div>
 
 

@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import func
 from app.models import World, Character, Story, Prompt, relatives_character
 from app.main import bp
-from app.main.forms import AddWorld, AddCharacter, AddStory, Delete, Rename, Edit, Add, Remove, ImageUpload, ChangeGender
+from app.main.forms import AddWorld, AddCharacter, AddStory, Delete, Rename, Edit, Add, Remove, ImageUpload, ChangeGender, Clear
 from app.main.global_dicts import *
 
 def validate_image(stream):
@@ -142,6 +142,11 @@ def character(character_id):
 
             return redirect(url_for('main.character', character_id = character_id))
 
+        clear_form = Clear()
+
+        if clear_form.clear.data and clear_form.validate():
+            character_entry.avatar = None
+
 
         gender_form = ChangeGender()
         gender_form.change.label = Label(gender_form.change.id, 'Change Gender')
@@ -180,9 +185,10 @@ def character(character_id):
             relatives = relatives,
             rename_form = rename_form,
             avatar_form = avatar_form,
+            clear_form = clear_form,
             gender_form = gender_form,
             description_form = description_form,
-            delete_form = delete_form,
+            delete_form = delete_form
         )
 
     else:
