@@ -55,7 +55,7 @@ def story_dict():
         snippet = ' '.join(snippetList)
         s_dict["snippet"] = snippet
         s_dict["characters"] = []
-        character_query = Character.query.join(story_character).join(Story).filter(story_character.c.story_id == story.id).all() ### added .all()
+        character_query = Character.query.join(story_character).join(Story).filter(story_character.c.story_id == story.id).all()
         for character in character_query:
             c_dict = {}
             c_dict["id"] = character.id
@@ -77,17 +77,10 @@ def prompt_dict():
         p_dict["category"] = p.category
         p_dict["participants"] = p.participants
         p_dict["inspired_stories"] = []
-        # story_query = Story.query.filter(Story.user_id == current_user.id, Story.prompt_id == p.id).all()
-        # for s in story_query:
-        #     s_dict = {}
-        #     s_dict["id"] = s.id
-        #     s_dict["title"] = s.title
-        #     s_dict["text"] = s.text
-        #     p_dict["inspired_stories"].append(s_dict)
         prompts_list.append(p_dict)
     return prompts_list
 
-def character_dict(): # combine with world_dict?
+def character_dict():
     character_list = []
     character_query = Character.query.filter(Character.user_id == current_user.id).all()
     for character in character_query:
@@ -101,7 +94,7 @@ def character_dict(): # combine with world_dict?
 
         relatives_query = Character.query.join(relatives_character, (relatives_character.c.relative_b == Character.id)).filter(relatives_character.c.relative_a == character.id).order_by(Character.name).all()
 
-        for relative in relatives_query: # turn this into dictionary?
+        for relative in relatives_query:
             c_dict["relatives"].append(relative.name)
 
 

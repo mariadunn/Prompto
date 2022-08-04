@@ -11,7 +11,7 @@ class AddWorld(FlaskForm):
     world_name = StringField('Name', validators=[DataRequired()])
     create_world = SubmitField('Create World')
 
-    def validate_world_name(self, world_name): # the name of this function needs to match the field you're validating!
+    def validate_world_name(self, world_name):
         world = World.query.filter_by(user_id=current_user.id, name=world_name.data).first()
         if world is not None:
             flash('This world already exists!', 'error')
@@ -27,7 +27,7 @@ class AddCharacter(FlaskForm):
     relatives = SelectMultipleField('Blood Relatives')
     add_character = SubmitField('Create Character')
 
-    def validate_last_name(self, last_name): # the name of this function needs to match the field you're validating!
+    def validate_last_name(self, last_name):
         if self.select_world.data != '':
             world_query = World.query.filter_by(user_id=current_user.id, name=self.select_world.data).first()
             character = Character.query.filter_by(user_id=current_user.id, world_id=world_query.id, first_name=self.first_name.data, last_name=self.last_name.data).first()

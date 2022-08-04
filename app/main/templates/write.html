@@ -12,7 +12,7 @@ let availableCharacters = []
 let allWorlds = true
 let promptCharacters = []
 
-function populateCharacterList() { // TODO: Does this need to be a function?
+function populateCharacterList() {
   let characterList = {{ characters|tojson }};
   return characterList
 }
@@ -39,9 +39,8 @@ function getPrompt() {
 function getCharacters(participants, category, text) {
   promptCharacters = []
   $(".character-name").removeClass("light-pink-select")
-  let allowRomance = $("#romance_override").is(":checked")
 
-  if (category == "romantic" && allowRomance == false) {
+  if (category == "romantic") {
     availableCharacters = removeRelatives(availableCharacters);
   } else {
     populateCharacters()

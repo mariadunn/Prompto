@@ -81,7 +81,6 @@
           let featuredCharactersHTML = ""
 
           for (let character of featuredCharacters) {
-            // let characterURL = Flask.url_for('main.character', {"character_id": character.id, "character_name": character.name.replace(' ', '_')})
             featuredCharactersHTML += `<div class="f-${character.id} featuring-name">${character.name}</div>`
           }
 

@@ -99,7 +99,7 @@ def worlds():
 
 ## CHARACTERS ##
 
-@bp.route('/characters/<character_id>', methods=['GET', 'POST']) # is there another way to combine name and id in the same URL?
+@bp.route('/characters/<character_id>', methods=['GET', 'POST'])
 @login_required
 def character(character_id):
 
@@ -472,7 +472,7 @@ def write():
             text = story_text,
         )
         db.session.add(story_entry)
-        db.session.flush() # "flush" seems to mean "commit, but keep database open for more changes"
+        db.session.flush()
         story = Story.query.filter_by(user_id=current_user.id, title=story_title, text=story_text).first()
         selected_characters = story_form.select_characters.data
         character_entries = []
